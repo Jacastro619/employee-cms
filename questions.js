@@ -14,3 +14,5 @@ const initQuestions = [
     name: "initAction",
   },
 ];
+
+module.exports = { initQuestions };
