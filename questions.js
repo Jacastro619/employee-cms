@@ -15,4 +15,11 @@ const initQuestions = [
   },
 ];
 
-module.exports = { initQuestions };
+const addDepQuestion = [
+  {
+    message: "What is the name of the department?",
+    name: "addedDepartment",
+  },
+];
+
+module.exports = { initQuestions, addDepQuestion };
