@@ -122,6 +122,58 @@ function addRole() {
   });
 }
 
+function addEmployee(roleArray, manArray) {
+  const roleMap = {};
+  roleArray.forEach((role, index) => {
+    roleMap[role] = index + 1;
+  });
+  console.log(roleMap);
+  const addEmployeeQuestions = [
+    {
+      message: "What is the employee's first name?",
+      name: "fName",
+    },
+    {
+      message: "What is the employee's last name?",
+      name: "lName",
+    },
+    {
+      type: "list",
+      message: "What is the employees Role?",
+      choices: roleArray,
+      name: "empRole",
+    },
+    {
+      type: "list",
+      message: "Who is the employee's manager?",
+      choices: manArray,
+      name: "empManager",
+    },
+  ];
+  inquirer.prompt(addEmployeeQuestions).then((data) => {
+    let { fName, lName, empRole, empManager } = data;
+    console.log(data);
+    console.log(roleArray);
+
+    const roleID = roleMap[empRole];
+
+    const managerID =
+      empManager === "None" ? null : manArray.indexOf(empManager);
+
+    db.query(
+      `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ("${fName}", "${lName}", ${roleID}, ${managerID})`,
+      (err, data) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log(`added ${fName} ${lName} to database`);
+          init();
+        }
+      }
+    );
+  });
+}
+
 function init() {
   inquirer.prompt(initQuestions).then((data) => {
     switch (data.initAction) {
@@ -144,6 +196,11 @@ function init() {
         addRole();
         break;
       case "Add an Employee":
+        renderRoles().then((roleArray) => {
+          renderManagers().then((manArray) => {
+            addEmployee(roleArray, manArray);
+          });
+        });
         break;
       case "Update an Employee Role":
         break;
@@ -161,6 +218,35 @@ function rerenderDepartments() {
       } else {
         const depArray = data.map((dep) => dep.name);
         resolve(depArray);
+      }
+    });
+  });
+}
+
+function renderRoles() {
+  return new Promise((resolve, reject) => {
+    db.query(`SELECT * FROM roles`, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        const roleArray = data.map((role) => role.title);
+        resolve(roleArray);
+      }
+    });
+  });
+}
+
+function renderManagers() {
+  return new Promise((resolve, reject) => {
+    db.query(`SELECT * FROM employees`, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        const manArray = ["None"];
+        for (i = 0; i < data.length; i++) {
+          manArray.push(`${data[i].first_name} ${data[i].last_name}`);
+        }
+        resolve(manArray);
       }
     });
   });
