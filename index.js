@@ -1,5 +1,5 @@
+// DONT FORGET TO ADD COMMENTS!!!
 const inquirer = require("inquirer");
-const { initQuestions, addDepQuestion } = require("./questions");
 const mysql = require("mysql2");
 
 const db = mysql.createConnection(
@@ -11,6 +11,30 @@ const db = mysql.createConnection(
   },
   console.log(`Connecting to the cms_db database...`)
 );
+
+const initQuestions = [
+  {
+    type: "list",
+    message: "What would you like to do?",
+    choices: [
+      "View All Departments",
+      "View All Roles",
+      "View All Employees",
+      "Add a Department",
+      "Add a Role",
+      "Add an Employee",
+      "Update an Employee Role",
+    ],
+    name: "initAction",
+  },
+];
+
+const addDepQuestion = [
+  {
+    message: "What is the name of the department?",
+    name: "addedDepartment",
+  },
+];
 
 function viewDepartments() {
   db.query(`SELECT * FROM departments`, (err, data) => {
@@ -79,7 +103,6 @@ function addDepartment() {
   });
 }
 
-// WORK HERE
 function addRole() {
   rerenderDepartments().then((depArray) => {
     const addRoleQuestions = [
