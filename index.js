@@ -1,5 +1,5 @@
 const inquirer = require("inquirer");
-const { initQuestions, addDepQuestion } = require("./questions");
+const { initQuestions, addDepQuestion, roleQuestions } = require("./questions");
 const mysql = require("mysql2");
 
 const db = mysql.createConnection(
@@ -23,11 +23,15 @@ function viewDepartments() {
   });
 }
 
-function viewRoles() {
+function viewRoles(depArray) {
   db.query(`SELECT * FROM roles`, (err, data) => {
     if (err) {
       console.log(err);
     } else {
+      for (i = 0; i < data.length; i++) {
+        data[i].department = depArray[`${data[i].department_id - 1}`];
+        delete data[i].department_id;
+      }
       console.table(data);
       init();
     }
@@ -44,6 +48,13 @@ function viewEmployees() {
       if (err) {
         console.log(err);
       } else {
+        for (i = 0; i < data.length; i++) {
+          for (j = 0; j < data.length; j++) {
+            if (data[i].manager === data[j].id) {
+              data[i].manager = `${data[j].first_name} ${data[j].last_name}`;
+            }
+          }
+        }
         console.table(data);
         init();
       }
@@ -68,6 +79,49 @@ function addDepartment() {
   });
 }
 
+// WORK HERE
+function addRole() {
+  rerenderDepartments().then((depArray) => {
+    const addRoleQuestions = [
+      {
+        message: "What is the name of the role?",
+        name: "roleName",
+      },
+      {
+        message: "What is the salary of the role?",
+        name: "roleSalary",
+      },
+      {
+        type: "list",
+        message: "Which department does the role belong to?",
+        choices: depArray,
+        name: "department",
+      },
+    ];
+    inquirer.prompt(addRoleQuestions).then((data) => {
+      let { roleName, roleSalary, department } = data;
+      for (i = 0; i < depArray.length; i++) {
+        if (department === depArray[i]) {
+          department = depArray.indexOf(department) + 1;
+          break;
+        }
+      }
+      console.log(department);
+      db.query(
+        `INSERT INTO roles (title, salary, department_id) VALUES("${roleName}", ${roleSalary}, ${department})`,
+        (err, data) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log(`Added ${roleName} to the database`);
+            init();
+          }
+        }
+      );
+    });
+  });
+}
+
 function init() {
   inquirer.prompt(initQuestions).then((data) => {
     switch (data.initAction) {
@@ -75,7 +129,10 @@ function init() {
         viewDepartments();
         break;
       case "View All Roles":
-        viewRoles();
+        rerenderDepartments().then((depArray) => {
+          viewRoles(depArray);
+        });
+
         break;
       case "View All Employees":
         viewEmployees();
@@ -84,11 +141,27 @@ function init() {
         addDepartment();
         break;
       case "Add a Role":
+        addRole();
         break;
       case "Add an Employee":
+        break;
+      case "Update an Employee Role":
         break;
     }
   });
 }
 
 init();
+
+function rerenderDepartments() {
+  return new Promise((resolve, reject) => {
+    db.query(`SELECT name FROM departments`, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        const depArray = data.map((dep) => dep.name);
+        resolve(depArray);
+      }
+    });
+  });
+}
