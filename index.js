@@ -1,5 +1,5 @@
 const inquirer = require("inquirer");
-const { initQuestions, addDepQuestion, roleQuestions } = require("./questions");
+const { initQuestions, addDepQuestion } = require("./questions");
 const mysql = require("mysql2");
 
 const db = mysql.createConnection(
@@ -174,6 +174,45 @@ function addEmployee(roleArray, manArray) {
   });
 }
 
+function updateEmpRole(roleArray, manArray) {
+  const roleMap = {};
+  roleArray.forEach((role, index) => {
+    roleMap[role] = index + 1;
+  });
+  const updateQuestions = [
+    {
+      type: "list",
+      message: "Which employee's role do you want to update?",
+      choices: manArray,
+      name: "employee",
+    },
+    {
+      type: "list",
+      message: "Which role do you want to assign the selected employee?",
+      choices: roleArray,
+      name: "updatedRole",
+    },
+  ];
+  inquirer.prompt(updateQuestions).then((res) => {
+    let { employee, updatedRole } = res;
+    const roleID = roleMap[updatedRole];
+
+    const employeeID = manArray.indexOf(employee);
+
+    db.query(
+      `UPDATE employees SET role_id = ${roleID} WHERE id = ${employeeID}`,
+      (err, data) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log(`${employee}'s role has successfully been updated`);
+          init();
+        }
+      }
+    );
+  });
+}
+
 function init() {
   inquirer.prompt(initQuestions).then((data) => {
     switch (data.initAction) {
@@ -203,6 +242,11 @@ function init() {
         });
         break;
       case "Update an Employee Role":
+        renderRoles().then((roleArray) => {
+          renderManagers().then((manArray) => {
+            updateEmpRole(roleArray, manArray);
+          });
+        });
         break;
     }
   });
