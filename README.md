@@ -2,20 +2,24 @@
 
 ## Technology Used
 
-| Technology Used     |                                   Resource URL                                   |
-| ------------------- | :------------------------------------------------------------------------------: |
-| Node.js             |             [https://nodejs.org/en/docs](https://nodejs.org/en/docs)             |
-| MySQL               |             [https://dev.mysql.com/doc/](https://dev.mysql.com/doc/)             |
-| Inquirer v8.2.4 npm | [https://www.npmjs.com/package/inquirer](https://www.npmjs.com/package/inquirer) |
-| Git                 |                   [https://git-scm.com/](https://git-scm.com/)                   |
+| Technology Used     |                                                    Resource URL                                                    |
+| ------------------- | :----------------------------------------------------------------------------------------------------------------: |
+| JavaScript          | [https://developer.mozilla.org/en-US/docs/Web/JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) |
+| Node.js             |                              [https://nodejs.org/en/docs](https://nodejs.org/en/docs)                              |
+| MySQL               |                              [https://dev.mysql.com/doc/](https://dev.mysql.com/doc/)                              |
+| Inquirer v8.2.4 npm |                  [https://www.npmjs.com/package/inquirer](https://www.npmjs.com/package/inquirer)                  |
+| Git                 |                                    [https://git-scm.com/](https://git-scm.com/)                                    |
 
 ## Description
 
 This is a CMS service that will keep track of departments, roles, employees, and more for a company. All the user needs to do is choose what action they would like to do and then answer the following prompts. A nice table will be displayed in the terminal with the information requested.
 
+For video demonstration click [HERE](https://drive.google.com/file/d/1ragorfKqUXj-VfYW-7Y1e1K4bGnlBP6N/view?usp=sharing)
+
 ## Table of Contents
 
 - [Usage](#usage)
+- [Installation](#installation)
 - [License](#license)
 - [Questions](#questions)
 - [Author Info](#author-info)
@@ -23,6 +27,10 @@ This is a CMS service that will keep track of departments, roles, employees, and
 ## Usage
 
 The user will choose from the choices of what actions to take. If the user decides to view either department, role, or employees, then the user will be shown a table with the requsted information. If the user wishes to add data into the database, then the user will need to pick an 'Add' action. After the user picks an action, the user will need to answer the following prompts. Once the user answers the prompts based on the action that was chosen, then the information provided will be added to the database.
+
+## Installation
+
+Assuming the user has Node.js and MySQL properly installed and has configured a local database, the user will simply run 'npm i' to install dependencies. Once the user has dependencies installed, they will need to make sure the source code in index.js has the proper createConnection configurations respective to the user's local database using MySQL. Once installations and configurations are complete, the user will run 'npm index.js' and will be able to select actions to either view, add, or update (only employee role).
 
 ## License
 
