@@ -1,6 +1,7 @@
 // DONT FORGET TO ADD COMMENTS!!!
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
+const Table = require("cli-table");
 
 const db = mysql.createConnection(
   {
@@ -9,7 +10,8 @@ const db = mysql.createConnection(
     password: "password",
     database: "employee_db",
   },
-  console.log(`Connecting to the cms_db database...`)
+  console.log(`Connecting to the cms_db database... \n`),
+  console.log(`Database Connected 👍 \n`)
 );
 
 const initQuestions = [
@@ -41,8 +43,23 @@ function viewDepartments() {
     if (err) {
       console.log(err);
     } else {
-      console.table(data);
-      init();
+      var table = new Table({
+        head: ["ID", "Department"],
+        colWidths: [10, 20],
+      });
+
+      for (let i = 0; i < data.length; i++) {
+        table.push([data[i].id, data[i].name]);
+      }
+      if (table.length === 0) {
+        console.log(
+          `\n No Departments in database, select 'Add a Department' to add a department into database.\n`
+        );
+        init();
+      } else {
+        console.log(table.toString());
+        init();
+      }
     }
   });
 }
@@ -56,8 +73,28 @@ function viewRoles(depArray) {
         data[i].department = depArray[`${data[i].department_id - 1}`];
         delete data[i].department_id;
       }
-      console.table(data);
-      init();
+      var table = new Table({
+        head: ["ID", "Role", "Salary", "Department"],
+        colWidths: [10, 20, 10, 20],
+      });
+
+      for (let i = 0; i < data.length; i++) {
+        table.push([
+          data[i].id,
+          data[i].title,
+          data[i].salary,
+          data[i].department,
+        ]);
+      }
+      if (table.length === 0) {
+        console.log(
+          `\n No Roles in database, select 'Add a Role' to add a role into database. \n`
+        );
+        init();
+      } else {
+        console.log(table.toString());
+        init();
+      }
     }
   });
 }
@@ -79,8 +116,39 @@ function viewEmployees() {
             }
           }
         }
-        console.table(data);
-        init();
+        var table = new Table({
+          head: [
+            "ID",
+            "First Name",
+            "Last Name",
+            "Role",
+            "Department",
+            "Salary",
+            "Manager",
+          ],
+          colWidths: [10, 15, 15, 20, 20, 10, 20],
+        });
+
+        for (let i = 0; i < data.length; i++) {
+          table.push([
+            data[i].id,
+            data[i].first_name,
+            data[i].last_name,
+            data[i].title,
+            data[i].department,
+            data[i].salary,
+            JSON.stringify(data[i].manager),
+          ]);
+        }
+        if (table.length === 0) {
+          console.log(
+            `\n No Employees in database, select 'Add an Employee' to add an employee into database. \n`
+          );
+          init();
+        } else {
+          console.log(table.toString());
+          init();
+        }
       }
     }
   );
@@ -95,7 +163,7 @@ function addDepartment() {
         if (err) {
           console.log(err);
         } else {
-          console.log(`Added ${addedDep} to the database`);
+          console.log(`\n Added ${addedDep} to the database \n`);
           init();
         }
       }
@@ -121,27 +189,34 @@ function addRole() {
         name: "department",
       },
     ];
-    inquirer.prompt(addRoleQuestions).then((data) => {
-      let { roleName, roleSalary, department } = data;
-      for (i = 0; i < depArray.length; i++) {
-        if (department === depArray[i]) {
-          department = depArray.indexOf(department) + 1;
-          break;
-        }
-      }
-      console.log(department);
-      db.query(
-        `INSERT INTO roles (title, salary, department_id) VALUES("${roleName}", ${roleSalary}, ${department})`,
-        (err, data) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log(`Added ${roleName} to the database`);
-            init();
+    if (depArray.length === 0) {
+      console.log(
+        `\n No Departments to add role too. Please add a department first \n`
+      );
+      init();
+    } else {
+      inquirer.prompt(addRoleQuestions).then((data) => {
+        let { roleName, roleSalary, department } = data;
+        for (i = 0; i < depArray.length; i++) {
+          if (department === depArray[i]) {
+            department = depArray.indexOf(department) + 1;
+            break;
           }
         }
-      );
-    });
+        console.log(department);
+        db.query(
+          `INSERT INTO roles (title, salary, department_id) VALUES("${roleName}", ${roleSalary}, ${department})`,
+          (err, data) => {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log(`\n Added ${roleName} to the database \n`);
+              init();
+            }
+          }
+        );
+      });
+    }
   });
 }
 
@@ -150,7 +225,6 @@ function addEmployee(roleArray, manArray) {
   roleArray.forEach((role, index) => {
     roleMap[role] = index + 1;
   });
-  console.log(roleMap);
   const addEmployeeQuestions = [
     {
       message: "What is the employee's first name?",
@@ -173,28 +247,37 @@ function addEmployee(roleArray, manArray) {
       name: "empManager",
     },
   ];
-  inquirer.prompt(addEmployeeQuestions).then((data) => {
-    let { fName, lName, empRole, empManager } = data;
-    console.log(data);
-    console.log(roleArray);
 
-    const roleID = roleMap[empRole];
-
-    const managerID =
-      empManager === "None" ? null : manArray.indexOf(empManager);
-
-    db.query(
-      `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ("${fName}", "${lName}", ${roleID}, ${managerID})`,
-      (err, data) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log(`added ${fName} ${lName} to database`);
-          init();
-        }
-      }
+  if (roleArray.length === 0 && manArray.length === 1) {
+    console.log(
+      `\n No roles or employees in database. Please add them to database first \n`
     );
-  });
+    init();
+  } else if (roleArray.length < 0 && manArray.length < 1) {
+    console.log(`\n No roles in database. Please add a role first \n`);
+    init();
+  } else {
+    inquirer.prompt(addEmployeeQuestions).then((data) => {
+      let { fName, lName, empRole, empManager } = data;
+
+      const roleID = roleMap[empRole];
+
+      const managerID =
+        empManager === "None" ? null : manArray.indexOf(empManager);
+
+      db.query(
+        `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ("${fName}", "${lName}", ${roleID}, ${managerID})`,
+        (err, data) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log(`\n added ${fName} ${lName} to database \n`);
+            init();
+          }
+        }
+      );
+    });
+  }
 }
 
 function updateEmpRole(roleArray, manArray) {
@@ -216,24 +299,34 @@ function updateEmpRole(roleArray, manArray) {
       name: "updatedRole",
     },
   ];
-  inquirer.prompt(updateQuestions).then((res) => {
-    let { employee, updatedRole } = res;
-    const roleID = roleMap[updatedRole];
 
-    const employeeID = manArray.indexOf(employee);
-
-    db.query(
-      `UPDATE employees SET role_id = ${roleID} WHERE id = ${employeeID}`,
-      (err, data) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log(`${employee}'s role has successfully been updated`);
-          init();
-        }
-      }
+  if (manArray.length === 1) {
+    console.log(
+      `\n No employees in database. Please add employees to database first \n`
     );
-  });
+    init();
+  } else {
+    inquirer.prompt(updateQuestions).then((res) => {
+      let { employee, updatedRole } = res;
+      const roleID = roleMap[updatedRole];
+
+      const employeeID = manArray.indexOf(employee);
+
+      db.query(
+        `UPDATE employees SET role_id = ${roleID} WHERE id = ${employeeID}`,
+        (err, data) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log(
+              `\n ${employee}'s role has successfully been updated \n`
+            );
+            init();
+          }
+        }
+      );
+    });
+  }
 }
 
 function init() {
