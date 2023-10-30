@@ -30,7 +30,7 @@ The user will choose from the choices of what actions to take. If the user decid
 
 ## Installation
 
-Assuming the user has Node.js and MySQL properly installed and has configured a local database, the user will simply run 'npm i' to install dependencies. Once the user has dependencies installed, they will need to make sure the source code in index.js has the proper createConnection configurations respective to the user's local database using MySQL. Once installations and configurations are complete, the user will run 'npm index.js' and will be able to select actions to either view, add, or update (only employee role).
+Assuming the user has Node.js and MySQL properly installed and has configured a local database, the user will run schema.sql files in MySQL to create the employee_db. Optionally, the user can seed the tables in database with pre established values by running the seeds.sql file. Once the employee_db is configured, the user will simply run 'npm i' to install dependencies. Once the user has dependencies installed, they will need to make sure the source code in index.js has the proper createConnection configurations respective to the user's local database using MySQL. Once installations and configurations are complete, the user will run 'npm index.js' and will be able to select actions to either view, add, or update (only employee role).
 
 ## License
 
